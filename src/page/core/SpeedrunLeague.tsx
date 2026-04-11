@@ -1,3 +1,4 @@
+// SpeedrunLeague.tsx
 import { useEffect, useState } from "react";
 import { Zap, Trophy, Users } from "lucide-react";
 import { GameCard } from "../feature/GameCard";
@@ -61,49 +62,50 @@ export default function SpeedrunLeague() {
   return (
     <div className="min-h-screen p-6" style={{ background: "#030810" }}>
       {/* Header */}
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-            <Zap className="w-6 h-6 text-violet-400" />
-            Liga de Speedrun
-          </h1>
-          <p className="text-xs text-blue-400/30 font-mono mt-0.5">
-            <span className="text-blue-400/50">Producto Lider</span>
-          </p>
+      <div className="mb-6 flex flex-col gap-4">
+        {/* Fila 1: título + botones */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+              Liga de Speedruns
+            </h1>
+            <p className="text-xs text-blue-400/30 font-mono mt-0.5">
+              <span className="text-blue-400/50">Producto Lider</span>
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <a
+              href="https://www.twitch.tv/martin_bombelli"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center w-9 h-9 rounded-xl border border-purple-500/20 hover:bg-purple-500/10 hover:border-purple-500/40 transition-colors"
+              style={{ background: "rgba(168,85,247,0.05)" }}
+            >
+              <TwitchIcon className="w-4 h-4 text-purple-400/60" />
+            </a>
+            <button
+              onClick={() => setShowPlayers(true)}
+              className="flex items-center gap-2 text-xs font-bold text-blue-300/70 border border-blue-500/20 rounded-xl px-3 py-2 hover:bg-blue-500/10 transition-colors font-mono"
+              style={{ background: "rgba(59,130,246,0.05)" }}
+            >
+              <Users className="w-4 h-4" />
+              <span className="hidden sm:inline">Jugadores</span>
+            </button>
+            <button
+              onClick={() => setShowLeaderboard(true)}
+              className="flex items-center gap-2 text-xs font-bold text-yellow-400/70 border border-yellow-400/20 rounded-xl px-3 py-2 hover:bg-yellow-400/10 transition-colors font-mono"
+              style={{ background: "rgba(234,179,8,0.05)" }}
+            >
+              <Trophy className="w-4 h-4" />
+              <span className="hidden sm:inline">Clasificación</span>
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {/* Twitch icon only */}
-          <a
-            href="https://www.twitch.tv/martin_bombelli"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center w-9 h-9 rounded-xl border border-purple-500/20 hover:bg-purple-500/10 hover:border-purple-500/40 transition-colors"
-            style={{ background: "rgba(168,85,247,0.05)" }}
-          >
-            <TwitchIcon className="w-4 h-4 text-purple-400/60 hover:text-purple-400" />
-          </a>
-
-          <button
-            onClick={() => setShowPlayers(true)}
-            className="flex items-center gap-2 text-xs font-bold text-blue-300/70 border border-blue-500/20 rounded-xl px-4 py-2 hover:bg-blue-500/10 transition-colors font-mono"
-            style={{ background: "rgba(59,130,246,0.05)" }}
-          >
-            <Users className="w-4 h-4" />
-            Jugadores
-          </button>
-          <button
-            onClick={() => setShowLeaderboard(true)}
-            className="flex items-center gap-2 text-xs font-bold text-yellow-400/70 border border-yellow-400/20 rounded-xl px-4 py-2 hover:bg-yellow-400/10 transition-colors font-mono"
-            style={{ background: "rgba(234,179,8,0.05)" }}
-          >
-            <Trophy className="w-4 h-4" />
-            Clasificación
-          </button>
-        </div>
+        {/* Fila 2: search */}
+        <SearchBar value={busqueda} onChange={setBusqueda} />
       </div>
-
-      <SearchBar value={busqueda} onChange={setBusqueda} />
 
       {juegosFiltrados.length === 0 ? (
         <div className="text-center py-16 text-blue-400/20 font-mono text-sm">

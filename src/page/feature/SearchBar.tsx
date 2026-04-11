@@ -1,3 +1,4 @@
+// SearchBar.tsx
 import { Search } from "lucide-react";
 
 interface SearchBarProps {
@@ -7,7 +8,7 @@ interface SearchBarProps {
 
 export function SearchBar({ value, onChange }: SearchBarProps) {
   return (
-    <div className="mb-6 relative">
+    <div className="relative w-full">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-400/30" />
       <input
         type="text"
