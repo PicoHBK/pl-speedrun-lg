@@ -4,6 +4,7 @@ import { Zap, Trophy, Users } from "lucide-react";
 import { GameCard } from "../feature/GameCard";
 import { GameDialog } from "../feature/GameDialog";
 import { LeaderboardDialog } from "../feature/LeaderboardDialog";
+import { LeaderboardBeta } from "../feature/LeaderboardBeta";
 import { PlayersDialog } from "../feature/PlayersDialog";
 import { SearchBar } from "../feature/SearchBar";
 import type { SheetData, Juego } from "../landing/types/types";
@@ -26,6 +27,7 @@ export default function SpeedrunLeague() {
   const [error, setError] = useState("");
   const [selectedJuego, setSelectedJuego] = useState<Juego | null>(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showLeaderboardBeta, setShowLeaderboardBeta] = useState(false);
   const [showPlayers, setShowPlayers] = useState(false);
   const [busqueda, setBusqueda] = useState("");
 
@@ -100,6 +102,14 @@ export default function SpeedrunLeague() {
               <Trophy className="w-4 h-4" />
               <span className="hidden sm:inline">Clasificación</span>
             </button>
+            <button
+              onClick={() => setShowLeaderboardBeta(true)}
+              className="flex items-center gap-2 text-xs font-bold text-violet-400/70 border border-violet-400/20 rounded-xl px-3 py-2 hover:bg-violet-400/10 transition-colors font-mono"
+              style={{ background: "rgba(167,139,250,0.05)" }}
+            >
+              <Zap className="w-4 h-4" />
+              <span className="hidden sm:inline">Clasificación Beta</span>
+            </button>
           </div>
         </div>
 
@@ -128,6 +138,11 @@ export default function SpeedrunLeague() {
         jugadores={data.jugadores}
         open={showLeaderboard}
         onClose={() => setShowLeaderboard(false)}
+      />
+      <LeaderboardBeta
+        juegos={data.juegos}
+        open={showLeaderboardBeta}
+        onClose={() => setShowLeaderboardBeta(false)}
       />
       <PlayersDialog
         juegos={data.juegos}
