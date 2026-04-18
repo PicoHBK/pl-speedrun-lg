@@ -30,6 +30,7 @@ export default function SpeedrunLeague() {
   const [showLeaderboardBeta, setShowLeaderboardBeta] = useState(false);
   const [showPlayers, setShowPlayers] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+  const [ptsFilter, setPtsFilter] = useState<number | null>(null);
 
   useEffect(() => {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}&t=${Date.now()}`;
@@ -40,9 +41,13 @@ export default function SpeedrunLeague() {
       .finally(() => setLoading(false));
   }, []);
 
-  const juegosFiltrados = data.juegos.filter((j) =>
-    j.nombre.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  const ptsOptions = [...new Set(
+    data.juegos.map((j) => Math.min(10, j.runners.length + 1))
+  )].sort((a, b) => a - b);
+
+  const juegosFiltrados = data.juegos
+    .filter((j) => j.nombre.toLowerCase().includes(busqueda.toLowerCase()))
+    .filter((j) => ptsFilter === null || Math.min(10, j.runners.length + 1) === ptsFilter);
 
   if (loading)
     return (
@@ -113,8 +118,14 @@ export default function SpeedrunLeague() {
           </div>
         </div>
 
-        {/* Fila 2: search */}
-        <SearchBar value={busqueda} onChange={setBusqueda} />
+        {/* Fila 2: search + chips */}
+        <SearchBar
+          value={busqueda}
+          onChange={setBusqueda}
+          ptsOptions={ptsOptions}
+          ptsFilter={ptsFilter}
+          onPtsFilter={setPtsFilter}
+        />
       </div>
 
       {juegosFiltrados.length === 0 ? (
@@ -123,8 +134,8 @@ export default function SpeedrunLeague() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {juegosFiltrados.map((j, i) => (
-            <GameCard key={i} juego={j} onClick={() => setSelectedJuego(j)} />
+          {juegosFiltrados.map((j) => (
+            <GameCard key={j.nombre} juego={j} onClick={() => setSelectedJuego(j)} />
           ))}
         </div>
       )}
