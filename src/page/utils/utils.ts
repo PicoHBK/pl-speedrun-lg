@@ -86,3 +86,71 @@ export function parseCSV(text: string): SheetData {
 
   return { juegos, jugadores };
 }
+
+function esUrl(val: string): boolean {
+  return val.startsWith("http://") || val.startsWith("https://");
+}
+
+function esFecha(val: string): boolean {
+  return /^\d{1,2}\/\d{1,2}(\/\d{2,4})?$/.test(val) || /^\d{4}-\d{2}-\d{2}$/.test(val);
+}
+
+function parseCSVMultiline(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+
+    if (ch === '"') {
+      if (inQuotes && text[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (ch === "," && !inQuotes) {
+      row.push(current.trim());
+      current = "";
+    } else if (ch === "\n" && !inQuotes) {
+      row.push(current.trim());
+      rows.push(row);
+      row = [];
+      current = "";
+    } else {
+      current += ch;
+    }
+  }
+
+  if (current || row.length) {
+    row.push(current.trim());
+    rows.push(row);
+  }
+
+  return rows;
+}
+
+export function parseSheet3(text: string): { boton: string; contenido: string; img?: string; fechaFin?: string }[] {
+  const rows = parseCSVMultiline(text);
+  const result: { boton: string; contenido: string; img?: string; fechaFin?: string }[] = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    const boton = rows[i][1]?.trim();
+    const contenido = rows[i][2]?.trim();
+    const colD = rows[i][3]?.trim();
+    const colE = rows[i][4]?.trim();
+
+    if (!boton) continue;
+
+    result.push({
+      boton,
+      contenido: contenido ?? "",
+      img: colD && esUrl(colD) ? colD : undefined,
+      fechaFin: colE && esFecha(colE) ? colE : colD && esFecha(colD) ? colD : undefined,
+    });
+  }
+
+  return result;
+}

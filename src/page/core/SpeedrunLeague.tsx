@@ -1,5 +1,5 @@
 // SpeedrunLeague.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Zap, Trophy, Users } from "lucide-react";
 import { GameCard } from "../feature/GameCard";
 import { GameDialog } from "../feature/GameDialog";
@@ -7,11 +7,20 @@ import { LeaderboardDialog } from "../feature/LeaderboardDialog";
 import { LeaderboardBeta } from "../feature/LeaderboardBeta";
 import { PlayersDialog } from "../feature/PlayersDialog";
 import { SearchBar } from "../feature/SearchBar";
+import { TabsContenido } from "../feature/TabsContenido";
 import type { SheetData, Juego } from "../landing/types/types";
-import { parseCSV } from "../utils/utils";
+import { parseCSV, parseSheet3 } from "../utils/utils";
 
 const SHEET_ID = "1mrXf73gNSpp1miUVkQ-_au6vCl1jtO7RT6JpZKh5QWU";
 const GID = "2138027932";
+const GID_SHEET3 = "337149263";
+
+interface Tab {
+  boton: string;
+  contenido: string;
+  img?: string;
+  fechaFin?: string;
+}
 
 function TwitchIcon({ className }: { className?: string }) {
   return (
@@ -23,6 +32,7 @@ function TwitchIcon({ className }: { className?: string }) {
 
 export default function SpeedrunLeague() {
   const [data, setData] = useState<SheetData>({ juegos: [], jugadores: [] });
+  const [tabs, setTabs] = useState<Tab[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedJuego, setSelectedJuego] = useState<Juego | null>(null);
@@ -33,21 +43,37 @@ export default function SpeedrunLeague() {
   const [ptsFilter, setPtsFilter] = useState<number | null>(null);
 
   useEffect(() => {
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}&t=${Date.now()}`;
-    fetch(url)
-      .then((res) => res.text())
-      .then((text) => setData(parseCSV(text)))
+    const t = Date.now();
+    const url1 = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}&t=${t}`;
+    const url3 = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_SHEET3}&t=${t}`;
+
+    Promise.all([
+      fetch(url1).then((r) => r.text()),
+      fetch(url3).then((r) => r.text()),
+    ])
+      .then(([text1, text3]) => {
+        setData(parseCSV(text1));
+        setTabs(parseSheet3(text3));
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
 
-  const ptsOptions = [...new Set(
-    data.juegos.map((j) => Math.min(10, j.runners.length + 1))
-  )].sort((a, b) => a - b);
+  const ptsOptions = useMemo(
+    () =>
+      [...new Set(data.juegos.map((j) => Math.min(10, j.runners.length + 1)))].sort(
+        (a, b) => a - b
+      ),
+    [data.juegos]
+  );
 
-  const juegosFiltrados = data.juegos
-    .filter((j) => j.nombre.toLowerCase().includes(busqueda.toLowerCase()))
-    .filter((j) => ptsFilter === null || Math.min(10, j.runners.length + 1) === ptsFilter);
+  const juegosFiltrados = useMemo(
+    () =>
+      data.juegos
+        .filter((j) => j.nombre.toLowerCase().includes(busqueda.toLowerCase()))
+        .filter((j) => ptsFilter === null || Math.min(10, j.runners.length + 1) === ptsFilter),
+    [data.juegos, busqueda, ptsFilter]
+  );
 
   if (loading)
     return (
@@ -83,6 +109,7 @@ export default function SpeedrunLeague() {
 
           <div className="flex items-center gap-2 flex-shrink-0">
             <a
+            
               href="https://www.twitch.tv/martin_bombelli"
               target="_blank"
               rel="noopener noreferrer"
@@ -118,7 +145,10 @@ export default function SpeedrunLeague() {
           </div>
         </div>
 
-        {/* Fila 2: search + chips */}
+        {/* Fila 2: tabs dinámicos desde hoja 3 */}
+        {tabs.length > 0 && <TabsContenido tabs={tabs} />}
+
+        {/* Fila 3: search + chips */}
         <SearchBar
           value={busqueda}
           onChange={setBusqueda}
