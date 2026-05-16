@@ -1,6 +1,7 @@
-import { Trophy, Zap, Flame } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Trophy, Flame } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { Jugador } from "../landing/types/types";
+import { LeaderboardDialogCard } from "./cards/LeaderboardDialogCard";
 
 interface LeaderboardDialogProps {
   jugadores: Jugador[];
@@ -8,97 +9,51 @@ interface LeaderboardDialogProps {
   onClose: () => void;
 }
 
-function medalConfig(i: number) {
-  if (i === 0) return {
-    row: "bg-yellow-500/10 border border-yellow-400/20",
-    rank: "text-yellow-400",
-    name: "text-yellow-200",
-    pts: "bg-yellow-400/20 text-yellow-300",
-    icon: <Trophy className="w-3.5 h-3.5 text-yellow-400" />,
-  };
-  if (i === 1) return {
-    row: "bg-gray-300/5 border border-gray-300/10",
-    rank: "text-gray-300",
-    name: "text-gray-200",
-    pts: "bg-gray-300/10 text-gray-300",
-    icon: <Zap className="w-3.5 h-3.5 text-gray-300" />,
-  };
-  if (i === 2) return {
-    row: "bg-amber-500/10 border border-amber-500/20",
-    rank: "text-amber-400",
-    name: "text-amber-200",
-    pts: "bg-amber-500/20 text-amber-400",
-    icon: <Flame className="w-3.5 h-3.5 text-amber-400" />,
-  };
-  return {
-    row: "bg-blue-500/5 border border-blue-500/10 hover:bg-blue-500/10",
-    rank: "text-blue-400/30",
-    name: "text-blue-200/60",
-    pts: "bg-blue-900/40 text-blue-400/60",
-    icon: null,
-  };
-}
-
 export function LeaderboardDialog({ jugadores, open, onClose }: LeaderboardDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent
-        className="!max-w-lg w-[95vw] border border-blue-500/20 text-white max-h-[85vh] overflow-y-auto flex flex-col"
-        style={{ background: "#060f1a" }}
+        className="!max-w-lg w-[95vw] border border-blue-500/20 text-white max-h-[85vh] flex flex-col rounded-2xl shadow-[0_0_30px_rgba(30,144,255,0.15)] overflow-hidden p-0"
+        style={{ background: "radial-gradient(circle at top, #0a1626 0%, #040910 100%)" }}
       >
-        <DialogHeader className="border-b border-blue-500/20 pb-3">
-          <DialogTitle className="flex items-center gap-2 text-blue-100">
-            <Trophy className="w-4 h-4 text-yellow-400" />
-            Leaderboard
-            <span className="text-xs font-normal text-blue-400/50 font-mono ml-1">
+        {/* HEADER */}
+        <div className="p-4 sm:p-5 pb-4 border-b border-blue-500/20 bg-blue-950/20">
+          <DialogTitle className="flex items-center gap-3 text-xl font-black tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-blue-100 to-blue-300 m-0">
+            <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+              <Trophy className="w-5 h-5 text-yellow-400 drop-shadow-[0_0_8px_rgba(234,179,8,0.6)]" />
+            </div>
+            Tabla Anual
+            <span className="text-[10px] font-mono font-normal text-blue-400/50 ml-1 self-end pb-0.5">
               {jugadores.length} runners
             </span>
           </DialogTitle>
-        </DialogHeader>
-
-        {/* Column headers */}
-        <div className="flex items-center gap-3 px-4 pt-2 pb-1 text-xs font-mono text-blue-400/30">
-          <span className="w-4 text-center">#</span>
-          <span className="flex-1">runner</span>
-          <span className="w-14 text-center">
-            <span className="flex items-center justify-center gap-1">
-              <Trophy className="w-3 h-3" />WRs
-            </span>
-          </span>
         </div>
 
-        {/* Rows */}
-        <div className="space-y-1.5 pb-2">
-          {jugadores.map((j, i) => {
-            const m = medalConfig(i);
-            return (
-              <div
+        {/* ROWS */}
+        <div className="p-4 sm:p-5 overflow-y-auto custom-scrollbar flex-1">
+          <div className="flex flex-col gap-2">
+            {jugadores.map((j, i) => (
+              <LeaderboardDialogCard
                 key={j.nombre}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors ${m.row}`}
-              >
-                <div className="w-4 flex-shrink-0 flex justify-center">
-                  {m.icon ?? (
-                    <span className={`text-xs font-mono font-black ${m.rank}`}>{i + 1}</span>
-                  )}
-                </div>
-                <span className={`flex-1 text-sm font-bold truncate ${m.name}`}>
-                  {j.nombre}
-                </span>
-                <div className="w-14 flex justify-center">
-                  <span className={`text-xs font-black font-mono px-2 py-0.5 rounded-full ${m.pts}`}>
-                    {j.puntos}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+                jugador={j}
+                rank={i + 1}
+                index={i}
+              />
+            ))}
+          </div>
         </div>
 
-        <div className="border-t border-blue-500/20 pt-3 mt-1 flex items-center gap-4 text-xs text-blue-400/40 font-mono">
-          <span className="flex items-center gap-1">
+        {/* FOOTER */}
+        <div className="p-4 sm:p-5 pt-4 border-t border-blue-500/20 bg-[#040910] flex justify-between items-center gap-2 text-xs font-mono text-blue-400/50">
+          <div className="flex items-center gap-1.5">
             <Flame className="w-3 h-3 text-orange-400/60" />
-            {jugadores[0]?.nombre} lidera con {jugadores[0]?.puntos} WRs
-          </span>
+            <span className="text-blue-300 font-bold">{jugadores[0]?.nombre || "Nadie"}</span>
+            <span>lidera con</span>
+            <span className="text-yellow-400 font-black">{jugadores[0]?.puntos || 0} WRs</span>
+          </div>
+          <div className="text-[10px] tracking-wider opacity-60 uppercase">
+            World Records
+          </div>
         </div>
       </DialogContent>
     </Dialog>
