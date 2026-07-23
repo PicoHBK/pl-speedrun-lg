@@ -50,24 +50,28 @@ export function QueueWidget() {
     <div className="flex flex-col gap-1.5 font-mono">
 
       <div className="flex items-center gap-2">
-        <Users className="w-3 h-3" style={{ color: "#334155" }} />
-        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#334155" }}>
+        <Users className="w-3 h-3 text-muted-foreground" />
+        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
           Cola
         </span>
         {queue && (
           <>
-            <Circle className="w-1.5 h-1.5 fill-current" style={{ color: queue.status === "open" ? "#4ade80" : "#ef4444" }} />
-            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: queue.status === "open" ? "#4ade80" : "#ef4444" }}>
+            <Circle
+              className={`w-1.5 h-1.5 fill-current ${queue.status === "open" ? "text-success" : "text-destructive"}`}
+            />
+            <span
+              className={`text-[10px] font-black uppercase tracking-widest ${queue.status === "open" ? "text-success" : "text-destructive"}`}
+            >
               {queue.status === "open" ? "Abierta" : "Cerrada"}
             </span>
           </>
         )}
-        {loading && <span className="text-[10px]" style={{ color: "#1e293b" }}>Cargando...</span>}
-        {error && <span className="text-[10px]" style={{ color: "#ef4444" }}>Error</span>}
+        {loading && <span className="text-[10px] text-muted-foreground/60">Cargando...</span>}
+        {error && <span className="text-[10px] text-destructive">Error</span>}
       </div>
 
       {queue && queue.users.length === 0 && (
-        <span className="text-[10px]" style={{ color: "#1e293b" }}>Vacía</span>
+        <span className="text-[10px] text-muted-foreground/60">Vacía</span>
       )}
 
       {queue && queue.users.length > 0 && (
@@ -77,17 +81,12 @@ export function QueueWidget() {
             if (i === 0) return (
               <div
                 key={i}
-                className="flex flex-col items-start rounded-lg"
-                style={{
-                  padding: "5px 14px 6px 14px",
-                  background: "rgba(6,182,212,0.1)",
-                  border: "1px solid rgba(6,182,212,0.35)",
-                }}
+                className="flex flex-col items-start rounded-lg px-3.5 pt-1.5 pb-1.5 bg-accent2/10 border border-accent2/35"
               >
-                <span style={{ fontSize: "8px", fontWeight: 900, color: "#0891b2", textTransform: "uppercase", letterSpacing: "0.12em", lineHeight: 1 }}>
+                <span className="text-[8px] font-black uppercase tracking-[0.12em] leading-none text-accent2">
                   próximo
                 </span>
-                <span style={{ fontSize: "16px", fontWeight: 900, color: "#a5f3fc", lineHeight: 1.3 }}>
+                <span className="text-base font-black leading-tight text-accent2">
                   {user}
                 </span>
               </div>
@@ -96,30 +95,20 @@ export function QueueWidget() {
             if (i === 1) return (
               <div
                 key={i}
-                className="flex items-center gap-1.5 rounded-full"
-                style={{
-                  padding: "4px 10px",
-                  background: "rgba(30,41,59,0.6)",
-                  border: "1px solid rgba(51,65,85,0.5)",
-                }}
+                className="flex items-center gap-1.5 rounded-full px-2.5 py-1 bg-muted/60 border border-border"
               >
-                <span style={{ fontSize: "8px", fontWeight: 900, color: "#334155" }}>2</span>
-                <span style={{ fontSize: "11px", fontWeight: 600, color: "#64748b" }}>{user}</span>
+                <span className="text-[8px] font-black text-muted-foreground">2</span>
+                <span className="text-[11px] font-semibold text-muted-foreground">{user}</span>
               </div>
             );
 
             return (
               <div
                 key={i}
-                className="flex items-center gap-1 rounded-full"
-                style={{
-                  padding: "3px 8px",
-                  background: "transparent",
-                  border: "1px solid rgba(30,41,59,0.8)",
-                }}
+                className="flex items-center gap-1 rounded-full px-2 py-0.5 border border-border"
               >
-                <span style={{ fontSize: "8px", fontWeight: 700, color: "#1e293b" }}>{i + 1}</span>
-                <span style={{ fontSize: "10px", fontWeight: 500, color: "#334155" }}>{user}</span>
+                <span className="text-[8px] font-bold text-muted-foreground/60">{i + 1}</span>
+                <span className="text-[10px] font-medium text-muted-foreground/70">{user}</span>
               </div>
             );
           })}

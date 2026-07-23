@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Gamepad2, Clock, Trophy, User, Zap } from "lucide-react";
 import type { Juego } from "../landing/types/types";
+import { extraerMultiplicador, nombreSinMultiplicador } from "../utils/stats";
 
 // ─── Keyframes — 10 tiers únicos ─────────────────────────────────────────────
 const ANIMATION_STYLES = `
@@ -70,13 +71,6 @@ interface GameCardProps {
   onClick: () => void;
 }
 
-function extraerMultiplicador(nombre: string): number {
-  const match = nombre.match(/\[(\d+\.?\d*)\]$/);
-  return match ? parseFloat(match[1]) : 1;
-}
-function nombreSinMultiplicador(nombre: string): string {
-  return nombre.replace(/\s*\[\d+\.?\d*\]$/, "");
-}
 function puntosMaximos(juego: Juego): number {
   const mult = extraerMultiplicador(juego.nombre);
   // +1 porque si el usuario entra, ya sería un runner más
@@ -269,12 +263,13 @@ export function GameCard({ juego, onClick }: GameCardProps) {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        <div
+        <button
+          type="button"
           onClick={onClick}
-          className="group relative bg-zinc-950 rounded-lg overflow-hidden border-2 cursor-pointer transition-all duration-300"
+          aria-label={`Ver detalles de ${nombreSinMultiplicador(juego.nombre)}`}
+          className="group relative block w-full text-left bg-card rounded-lg overflow-hidden border-2 cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           style={{
             borderColor: tier.borderStyle,
-            animation: hovered ? tier.hoverGlowAnimation : tier.idleAnimation,
           }}
         >
 
@@ -286,7 +281,6 @@ export function GameCard({ juego, onClick }: GameCardProps) {
               left: "50%",
               transform: "translateX(-50%)",
               background: tier.tagBg,
-              boxShadow: tier.tagShadow,
               color: tier.tagTextColor,
               padding: "5px 16px",
               borderRadius: "0 0 6px 6px",
@@ -300,21 +294,23 @@ export function GameCard({ juego, onClick }: GameCardProps) {
             Potencial: {maxPts} pts
           </div>
 
-          {/* BADGE MULTIPLICADOR */}
-          <div className="absolute top-8 left-0 z-30">
-            <div
-              className="px-3 py-1 flex items-center gap-1 font-black italic text-xs"
-              style={{
-                background: mult >= 2 ? "#d97706" : mult > 1 ? "#7c3aed" : mult < 1 ? "#dc2626" : "#3f3f46",
-                color: mult >= 2 ? "#000" : "#fff",
-                clipPath: "polygon(0% 0%, 88% 0%, 100% 50%, 88% 100%, 0% 100%)",
-                paddingRight: "18px",
-              }}
-            >
-              <Zap className="w-3 h-3 fill-current" />
-              X{mult}
+          {/* BADGE MULTIPLICADOR — solo si el juego tiene multiplicador */}
+          {mult !== 1 && (
+            <div className="absolute top-8 left-0 z-30">
+              <div
+                className="px-3 py-1 flex items-center gap-1 font-black italic text-xs"
+                style={{
+                  background: mult >= 2 ? "#d97706" : mult > 1 ? "#7c3aed" : "#dc2626",
+                  color: mult >= 2 ? "#000" : "#fff",
+                  clipPath: "polygon(0% 0%, 88% 0%, 100% 50%, 88% 100%, 0% 100%)",
+                  paddingRight: "18px",
+                }}
+              >
+                <Zap className="w-3 h-3 fill-current" />
+                X{mult}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* BADGE PUNTOS */}
           <div className="absolute top-8 right-2 z-30">
@@ -332,30 +328,12 @@ export function GameCard({ juego, onClick }: GameCardProps) {
 
           {/* IMAGEN */}
           <div
-            className="relative w-full overflow-hidden bg-zinc-900"
+            className="relative w-full overflow-hidden bg-muted"
             style={{
               aspectRatio: "12/16",
-              animation: tier.borderGlowAnimation,
             }}
           >
-            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/10 to-transparent z-10 pointer-events-none" />
-
-            {/* Shimmer diagonal en hover */}
-            <div
-              className="absolute inset-0 z-20 pointer-events-none overflow-hidden"
-              style={{ opacity: hovered ? 1 : 0, transition: "opacity 0.3s" }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  top: 0, left: 0,
-                  width: "40%",
-                  height: "100%",
-                  background: `linear-gradient(90deg, transparent, ${tier.shimmerColor}, transparent)`,
-                  animation: hovered ? "shimmer 1.6s ease-in-out infinite" : "none",
-                }}
-              />
-            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent z-10 pointer-events-none" />
 
             {/* Imagen sin ningún filtro */}
             {juego.imagen && !imgError ? (
@@ -367,25 +345,25 @@ export function GameCard({ juego, onClick }: GameCardProps) {
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
-                <Gamepad2 className="w-12 h-12 text-zinc-800" strokeWidth={1} />
+                <Gamepad2 className="w-12 h-12 text-muted-foreground/40" strokeWidth={1} />
               </div>
             )}
 
             {/* Info flotante */}
             <div className="absolute bottom-3 left-3 right-3 z-30 space-y-1.5">
               <div className="flex items-center gap-2">
-                <div className="bg-cyan-500 text-black p-1 rounded-sm">
+                <div className="bg-accent2 text-accent2-foreground p-1 rounded-sm">
                   <Clock className="w-3 h-3 stroke-[3px]" />
                 </div>
-                <span className="text-white font-black text-sm tracking-widest drop-shadow-md">
+                <span className="text-white font-black text-sm tracking-widest drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
                   {juego.record}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="bg-zinc-200 text-black p-1 rounded-sm">
+                <div className="bg-white text-black p-1 rounded-sm">
                   <Trophy className="w-3 h-3" />
                 </div>
-                <span className="text-zinc-200 font-bold text-[11px] uppercase tracking-tight truncate">
+                <span className="text-white font-bold text-[11px] uppercase tracking-tight truncate drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
                   {juego.quien}
                 </span>
               </div>
@@ -393,24 +371,30 @@ export function GameCard({ juego, onClick }: GameCardProps) {
           </div>
 
           {/* FOOTER */}
-          <div className="p-3 bg-zinc-950 border-t border-zinc-900 relative z-30">
+          <div className="p-3 bg-card border-t border-border relative z-30">
             <h3
-              className="font-black text-sm leading-tight line-clamp-1 uppercase tracking-tighter transition-all duration-300"
-              style={{ color: hovered ? tier.titleHoverColor : tier.titleColor }}
+              className="font-black text-sm leading-tight line-clamp-1 uppercase tracking-tighter transition-all duration-300 text-foreground"
+              style={{ color: hovered ? tier.titleHoverColor : undefined }}
             >
               {nombreSinMultiplicador(juego.nombre)}
             </h3>
-            <div className="mt-2 flex items-center justify-between">
-              <div className="flex items-center gap-1 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
-                <User className="w-3 h-3 text-zinc-400" />
-                <span className="text-[10px] font-bold text-zinc-400">{juego.runners.length} RUNNERS</span>
+            <div className="mt-2 flex items-center justify-between gap-1">
+              <div className="flex items-center gap-1 bg-muted px-2 py-0.5 rounded border border-border">
+                <User className="w-3 h-3 text-muted-foreground" />
+                <span className="text-[10px] font-bold text-muted-foreground">{juego.runners.length} RUNNERS</span>
               </div>
-              <div className="h-1 w-12 bg-zinc-800 rounded-full overflow-hidden">
-                <div className="h-full bg-zinc-400 w-2/3" />
-              </div>
+              {juego.runners.length === 1 ? (
+                <span className="text-[9px] font-black font-mono uppercase tracking-wider text-gold bg-gold/10 border border-gold/30 px-1.5 py-0.5 rounded">
+                  Sin rival
+                </span>
+              ) : (
+                <span className="text-[9px] font-black font-mono uppercase tracking-wider text-accent2 bg-accent2/10 border border-accent2/30 px-1.5 py-0.5 rounded">
+                  En disputa
+                </span>
+              )}
             </div>
           </div>
-        </div>
+        </button>
       </div>
     </>
   );

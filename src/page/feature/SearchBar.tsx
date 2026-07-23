@@ -1,6 +1,8 @@
 // SearchBar.tsx
-import { Search } from "lucide-react";
+import { Search, Flame, ArrowDownAZ, Timer, ChevronDown, Target } from "lucide-react";
 import { QueueWidget } from "./QueueWidget";
+
+export type SortMode = "relevantes" | "az" | "record";
 
 interface SearchBarProps {
   value: string;
@@ -8,94 +10,92 @@ interface SearchBarProps {
   ptsOptions: number[];
   ptsFilter: number | null;
   onPtsFilter: (pts: number | null) => void;
+  sort: SortMode;
+  onSort: (s: SortMode) => void;
+  robaFacil: boolean;
+  onRobaFacil: (v: boolean) => void;
 }
 
-const TIER_COLORS: Record<number, { bg: string; activeBg: string; text: string; activeText: string; border: string; activeBorder: string }> = {
-  1:  { bg: "#27272a", activeBg: "#52525b", text: "#a1a1aa",  activeText: "#f4f4f5",  border: "#52525b",  activeBorder: "#a1a1aa" },
-  2:  { bg: "#052e16", activeBg: "#166534", text: "#4ade80",  activeText: "#dcfce7",  border: "#16a34a",  activeBorder: "#22c55e" },
-  3:  { bg: "#083344", activeBg: "#155e75", text: "#22d3ee",  activeText: "#cffafe",  border: "#0891b2",  activeBorder: "#06b6d4" },
-  4:  { bg: "#172554", activeBg: "#1e40af", text: "#60a5fa",  activeText: "#dbeafe",  border: "#2563eb",  activeBorder: "#3b82f6" },
-  5:  { bg: "#1e1b4b", activeBg: "#312e81", text: "#818cf8",  activeText: "#e0e7ff",  border: "#4338ca",  activeBorder: "#6366f1" },
-  6:  { bg: "#2e1065", activeBg: "#4c1d95", text: "#a78bfa",  activeText: "#ede9fe",  border: "#7c3aed",  activeBorder: "#8b5cf6" },
-  7:  { bg: "#4a044e", activeBg: "#701a75", text: "#e879f9",  activeText: "#fae8ff",  border: "#a21caf",  activeBorder: "#c026d3" },
-  8:  { bg: "#4c0519", activeBg: "#881337", text: "#fb7185",  activeText: "#ffe4e6",  border: "#e11d48",  activeBorder: "#f43f5e" },
-  9:  { bg: "#431407", activeBg: "#9a3412", text: "#fb923c",  activeText: "#ffedd5",  border: "#ea580c",  activeBorder: "#f97316" },
-  10: { bg: "#713f12", activeBg: "#a16207", text: "#fde047",  activeText: "#fefce8",  border: "#ca8a04",  activeBorder: "#eab308" },
-};
+const SORTS: { id: SortMode; label: string; icon: React.ReactNode }[] = [
+  { id: "relevantes", label: "Relevantes", icon: <Flame className="w-3.5 h-3.5" /> },
+  { id: "az", label: "A-Z", icon: <ArrowDownAZ className="w-3.5 h-3.5" /> },
+  { id: "record", label: "Récord corto", icon: <Timer className="w-3.5 h-3.5" /> },
+];
 
-export function SearchBar({ value, onChange, ptsOptions, ptsFilter, onPtsFilter }: SearchBarProps) {
+export function SearchBar({ value, onChange, ptsOptions, ptsFilter, onPtsFilter, sort, onSort, robaFacil, onRobaFacil }: SearchBarProps) {
   return (
     <div className="flex flex-col gap-3 w-full">
 
-      {/* Fila: search + chips */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
+      {/* Fila: search + orden + filtro pts */}
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2 w-full">
 
-        {/* Input */}
-        <div className="relative sm:flex-1">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-400/60"
-          />
+        {/* Input — busca por juego o jugador */}
+        <div className="relative lg:flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Buscar juego..."
+            placeholder="Buscar juego o jugador..."
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full rounded-xl pl-9 pr-4 py-2.5 text-sm font-mono transition-all duration-200 focus:outline-none placeholder:text-blue-400/30"
-            style={{
-              background: "rgba(30,58,138,0.15)",
-              border: "1px solid rgba(59,130,246,0.35)",
-              color: "#93c5fd",
-              boxShadow: "0 0 0 0 transparent",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.border = "1px solid rgba(59,130,246,0.7)";
-              e.currentTarget.style.background = "rgba(30,58,138,0.25)";
-              e.currentTarget.style.boxShadow = "0 0 12px rgba(59,130,246,0.15)";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.border = "1px solid rgba(59,130,246,0.35)";
-              e.currentTarget.style.background = "rgba(30,58,138,0.15)";
-              e.currentTarget.style.boxShadow = "0 0 0 0 transparent";
-            }}
+            className="w-full rounded-xl pl-9 pr-4 py-2.5 text-sm font-mono transition-all duration-200 bg-muted/40 border border-border text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-brand/60 focus:bg-muted/70 focus:ring-2 focus:ring-brand/20"
           />
         </div>
 
-        {/* Chips de pts */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {ptsOptions.map((pts) => {
-            const active = ptsFilter === pts;
-            const c = TIER_COLORS[pts] ?? TIER_COLORS[1];
-            return (
-              <button
-                key={pts}
-                onClick={() => onPtsFilter(active ? null : pts)}
-                className="text-[11px] font-black font-mono rounded-lg px-2.5 py-1.5 transition-all duration-150 uppercase tracking-wider whitespace-nowrap"
-                style={{
-                  background: active ? c.activeBg : c.bg,
-                  color: active ? c.activeText : c.text,
-                  border: `1px solid ${active ? c.activeBorder : c.border}`,
-                  opacity: active ? 1 : 0.75,
-                  transform: active ? "scale(1.05)" : "scale(1)",
-                }}
-              >
-                {pts} pts
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Roba Fácil — juegos con un solo runner (Sanosuke o Jack Turrismo) */}
+          <button
+            onClick={() => onRobaFacil(!robaFacil)}
+            title="Juegos con un solo runner (Sanosuke o Jack Turrismo): récord fácil de robar"
+            className={`flex items-center gap-1.5 text-[11px] font-mono font-bold uppercase tracking-wider rounded-xl px-3 py-2.5 border transition-all duration-150 whitespace-nowrap ${
+              robaFacil
+                ? "bg-gold text-brand-foreground border-gold shadow-[0_0_14px_-4px_var(--gold)]"
+                : "bg-muted/40 text-muted-foreground border-border hover:text-foreground hover:border-gold/50"
+            }`}
+          >
+            <Target className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Roba Fácil</span>
+          </button>
 
-          {ptsFilter !== null && (
-            <button
-              onClick={() => onPtsFilter(null)}
-              className="text-[11px] font-mono rounded-lg px-2 py-1.5 transition-all duration-150 hover:text-blue-300"
-              style={{
-                background: "transparent",
-                color: "rgba(148,163,184,0.5)",
-                border: "1px solid rgba(59,130,246,0.2)",
-              }}
+          {/* Orden */}
+          <div className="flex items-center gap-1 bg-muted/40 border border-border rounded-xl p-1 w-fit">
+            {SORTS.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => onSort(s.id)}
+                title={`Ordenar por ${s.label}`}
+                className={`flex items-center gap-1.5 text-[11px] font-mono font-bold rounded-lg px-2.5 py-1.5 transition-all duration-150 whitespace-nowrap ${
+                  sort === s.id
+                    ? "bg-brand text-brand-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {s.icon}
+                <span className="hidden sm:inline">{s.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Filtro de puntos — select compacto */}
+          <div className="relative">
+            <select
+              value={ptsFilter ?? ""}
+              onChange={(e) => onPtsFilter(e.target.value === "" ? null : Number(e.target.value))}
+              aria-label="Filtrar por puntos"
+              className={`appearance-none cursor-pointer rounded-xl border py-2.5 pl-3 pr-8 text-[11px] font-mono font-bold uppercase tracking-wider transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-brand/20 [color-scheme:light] dark:[color-scheme:dark] ${
+                ptsFilter !== null
+                  ? "bg-brand text-brand-foreground border-brand"
+                  : "bg-muted/40 text-muted-foreground border-border hover:text-foreground hover:border-brand/40"
+              }`}
             >
-              ✕
-            </button>
-          )}
+              <option value="">Puntos: todos</option>
+              {ptsOptions.map((pts) => (
+                <option key={pts} value={pts}>
+                  {pts} pts
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 opacity-70" />
+          </div>
         </div>
       </div>
 

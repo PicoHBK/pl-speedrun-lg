@@ -9,9 +9,9 @@ interface Jugador {
 // ─── Misma lógica de tiers que LeaderboardCard ───────────────────────────────
 
 const PODIUM_ICONS: Record<number, React.ReactNode> = {
-  1: <Trophy className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-[0_0_8px_rgba(234,179,8,0.9)]" />,
-  2: <Medal  className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-[0_0_8px_rgba(34,211,238,0.9)]" />,
-  3: <Award  className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-[0_0_8px_rgba(249,115,22,0.9)]" />,
+  1: <Trophy className="w-5 h-5 sm:w-6 sm:h-6" />,
+  2: <Medal  className="w-5 h-5 sm:w-6 sm:h-6" />,
+  3: <Award  className="w-5 h-5 sm:w-6 sm:h-6" />,
 };
 
 const TIER: Record<number, {
@@ -19,42 +19,42 @@ const TIER: Record<number, {
   name: string; sub: string; score: string; badge: string;
 }> = {
   1: {
-    card:   "border border-yellow-500/50 bg-gradient-to-r from-yellow-500/20 to-[#0a0a0a] shadow-[0_0_15px_rgba(234,179,8,0.15)] hover:shadow-[0_0_25px_rgba(234,179,8,0.3)]",
-    rank:   "text-yellow-400 drop-shadow-[0_0_8px_rgba(234,179,8,0.8)] font-black italic",
-    avatar: "bg-yellow-500 text-black font-black border-2 border-yellow-300 shadow-[0_0_10px_rgba(234,179,8,0.5)]",
-    name:   "text-yellow-400 font-black uppercase tracking-wider",
-    sub:    "text-yellow-500/70 font-mono",
-    score:  "text-yellow-300 font-black text-2xl drop-shadow-[0_0_8px_rgba(234,179,8,0.8)] font-mono",
-    badge:  "bg-yellow-500 text-black font-black uppercase tracking-widest border border-yellow-300 shadow-[0_0_10px_rgba(234,179,8,0.5)] rounded-full px-2.5",
+    card:   "border border-gold/50 bg-gradient-to-r from-gold/15 to-card shadow-[0_0_20px_-8px_var(--gold)] hover:shadow-[0_0_28px_-6px_var(--gold)]",
+    rank:   "text-gold font-black italic",
+    avatar: "bg-gold text-brand-foreground font-black border-2 border-gold/60",
+    name:   "text-gold font-black uppercase tracking-wider",
+    sub:    "text-gold/70 font-mono",
+    score:  "text-gold font-black text-2xl font-mono",
+    badge:  "bg-gold text-brand-foreground font-black uppercase tracking-widest border border-gold/60 rounded-full px-2.5",
   },
   2: {
-    card:   "border border-cyan-400/50 bg-gradient-to-r from-cyan-500/20 to-[#0a0a0a] shadow-[0_0_15px_rgba(34,211,238,0.15)] hover:shadow-[0_0_25px_rgba(34,211,238,0.3)]",
-    rank:   "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] font-black italic",
-    avatar: "bg-cyan-400 text-black font-black border-2 border-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.5)]",
-    name:   "text-cyan-300 font-bold uppercase tracking-wider",
-    sub:    "text-cyan-500/70 font-mono",
-    score:  "text-cyan-300 font-black text-2xl drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] font-mono",
-    badge:  "bg-cyan-400 text-black font-black uppercase tracking-widest border border-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.5)] rounded-full px-2.5",
+    card:   "border border-accent2/50 bg-gradient-to-r from-accent2/15 to-card shadow-[0_0_20px_-8px_var(--accent2)] hover:shadow-[0_0_28px_-6px_var(--accent2)]",
+    rank:   "text-accent2 font-black italic",
+    avatar: "bg-accent2 text-accent2-foreground font-black border-2 border-accent2/60",
+    name:   "text-accent2 font-bold uppercase tracking-wider",
+    sub:    "text-accent2/70 font-mono",
+    score:  "text-accent2 font-black text-2xl font-mono",
+    badge:  "bg-accent2 text-accent2-foreground font-black uppercase tracking-widest border border-accent2/60 rounded-full px-2.5",
   },
   3: {
-    card:   "border border-orange-500/50 bg-gradient-to-r from-orange-500/20 to-[#0a0a0a] shadow-[0_0_15px_rgba(249,115,22,0.15)] hover:shadow-[0_0_25px_rgba(249,115,22,0.3)]",
-    rank:   "text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)] font-black italic",
-    avatar: "bg-orange-500 text-black font-black border-2 border-orange-300 shadow-[0_0_10px_rgba(249,115,22,0.5)]",
-    name:   "text-orange-400 font-bold uppercase tracking-wider",
-    sub:    "text-orange-500/70 font-mono",
-    score:  "text-orange-400 font-black text-2xl drop-shadow-[0_0_8px_rgba(249,115,22,0.8)] font-mono",
-    badge:  "bg-orange-500 text-black font-black uppercase tracking-widest border border-orange-300 shadow-[0_0_10px_rgba(249,115,22,0.5)] rounded-full px-2.5",
+    card:   "border border-brand/50 bg-gradient-to-r from-brand/15 to-card shadow-[0_0_20px_-8px_var(--brand)] hover:shadow-[0_0_28px_-6px_var(--brand)]",
+    rank:   "text-brand font-black italic",
+    avatar: "bg-brand text-brand-foreground font-black border-2 border-brand/60",
+    name:   "text-brand font-bold uppercase tracking-wider",
+    sub:    "text-brand/70 font-mono",
+    score:  "text-brand font-black text-2xl font-mono",
+    badge:  "bg-brand text-brand-foreground font-black uppercase tracking-widest border border-brand/60 rounded-full px-2.5",
   },
 };
 
 const DEFAULT = {
-  card:   "border border-gray-700/50 bg-[#0d1117] hover:border-emerald-500/40 hover:bg-gradient-to-r hover:from-emerald-900/20 hover:to-[#0d1117] shadow-lg",
-  rank:   "text-gray-500 font-black italic",
-  avatar: "bg-gray-800 text-gray-400 font-bold border border-gray-700",
-  name:   "text-gray-200 font-semibold uppercase tracking-wide",
-  sub:    "text-gray-500 font-mono",
-  score:  "text-emerald-400 font-black font-mono text-xl drop-shadow-[0_0_5px_rgba(52,211,153,0.4)]",
-  badge:  "bg-gray-800 text-gray-300 border border-gray-700 rounded-full px-2.5",
+  card:   "border border-border bg-card hover:border-brand/40 hover:bg-brand/5 shadow-lg",
+  rank:   "text-muted-foreground font-black italic",
+  avatar: "bg-muted text-muted-foreground font-bold border border-border",
+  name:   "text-foreground font-semibold uppercase tracking-wide",
+  sub:    "text-muted-foreground font-mono",
+  score:  "text-success font-black font-mono text-xl",
+  badge:  "bg-muted text-muted-foreground border border-border rounded-full px-2.5",
 };
 
 const BADGES = ["Primero", "Segundo", "Tercero"];

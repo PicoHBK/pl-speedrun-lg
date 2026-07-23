@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { Users, Trophy, Clock } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Users, Trophy, Clock, Timer } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { Juego } from "../landing/types/types";
+import { tiempoASegundos } from "../utils/utils";
+import { formatDuracion } from "../utils/stats";
 
 interface PlayerRun {
   juego: Juego;
@@ -12,6 +14,8 @@ interface PlayerRun {
 interface PlayerData {
   nombre: string;
   runs: PlayerRun[];
+  records: number;
+  segundosTotal: number;
 }
 
 interface PlayersDialogProps {
@@ -29,8 +33,15 @@ function buildPlayers(juegos: Juego[]): PlayerData[] {
     }
   }
   return Array.from(map.entries())
-    .map(([nombre, runs]) => ({ nombre, runs }))
-    .sort((a, b) => b.runs.filter((r) => r.esRecord).length - a.runs.filter((r) => r.esRecord).length);
+    .map(([nombre, runs]) => {
+      const records = runs.filter((r) => r.esRecord).length;
+      const segundosTotal = runs.reduce((acc, r) => {
+        const s = tiempoASegundos(r.tiempo);
+        return acc + (Number.isFinite(s) ? s : 0);
+      }, 0);
+      return { nombre, runs, records, segundosTotal };
+    })
+    .sort((a, b) => b.records - a.records || b.runs.length - a.runs.length);
 }
 
 // ─── Tooltip ─────────────────────────────────────────────────────────────────
@@ -40,40 +51,40 @@ function Tooltip({ run, openDown }: { run: PlayerRun; openDown: boolean }) {
   return (
     <div className="pointer-events-none" style={{ zIndex: 9999 }}>
       {openDown && (
-        <div className="w-2.5 h-2.5 bg-[#0d1b2e] border-l border-t border-blue-500/30 rotate-45 mx-auto mb-[-5px] relative z-10" />
+        <div className="w-2.5 h-2.5 bg-popover border-l border-t border-border rotate-45 mx-auto mb-[-5px] relative z-10" />
       )}
-      <div className="bg-[#0d1b2e] border border-blue-500/30 rounded-xl px-3 py-2.5 shadow-2xl shadow-blue-950/80 min-w-[190px]">
-        <p className="font-bold text-blue-100 text-xs mb-2 max-w-[210px] truncate leading-tight">
+      <div className="bg-popover border border-border rounded-xl px-3 py-2.5 shadow-2xl min-w-[190px]">
+        <p className="font-bold text-foreground text-xs mb-2 max-w-[210px] truncate leading-tight">
           {run.juego.nombre}
         </p>
         {run.esRecord ? (
           <div className="flex items-center gap-1.5">
-            <Trophy className="w-3 h-3 text-yellow-400 flex-shrink-0" />
-            <span className="text-green-400 font-mono font-bold text-xs">{run.tiempo}</span>
-            <span className="text-blue-400/60 text-xs">record</span>
+            <Trophy className="w-3 h-3 text-gold flex-shrink-0" />
+            <span className="text-success font-mono font-bold text-xs">{run.tiempo}</span>
+            <span className="text-muted-foreground text-xs">record</span>
           </div>
         ) : (
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between gap-4">
-              <span className="text-blue-400/60 text-xs flex items-center gap-1">
-                <Trophy className="w-3 h-3 text-yellow-400" />
+              <span className="text-muted-foreground text-xs flex items-center gap-1">
+                <Trophy className="w-3 h-3 text-gold" />
                 {record.nombre}
               </span>
-              <span className="text-green-400 font-mono font-bold text-xs">{record.tiempo}</span>
+              <span className="text-success font-mono font-bold text-xs">{record.tiempo}</span>
             </div>
-            <div className="w-full h-px bg-blue-500/20" />
+            <div className="w-full h-px bg-border" />
             <div className="flex items-center justify-between gap-4">
-              <span className="text-blue-400/60 text-xs flex items-center gap-1">
-                <Clock className="w-3 h-3 text-blue-400" />
+              <span className="text-muted-foreground text-xs flex items-center gap-1">
+                <Clock className="w-3 h-3 text-brand" />
                 Tiempo
               </span>
-              <span className="text-blue-200 font-mono font-bold text-xs">{run.tiempo}</span>
+              <span className="text-foreground font-mono font-bold text-xs">{run.tiempo}</span>
             </div>
           </div>
         )}
       </div>
       {!openDown && (
-        <div className="w-2.5 h-2.5 bg-[#0d1b2e] border-r border-b border-blue-500/30 rotate-45 mx-auto -mt-1.5" />
+        <div className="w-2.5 h-2.5 bg-popover border-r border-b border-border rotate-45 mx-auto -mt-1.5" />
       )}
     </div>
   );
@@ -96,7 +107,7 @@ function RunDot({ run, rowIndex, onHighlight }: {
       onMouseLeave={() => onHighlight(null)}
     >
       <div className={`w-3.5 h-3.5 rounded-full transition-transform duration-150 group-hover/dot:scale-125 cursor-default ${
-        run.esRecord ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.7)]" : "bg-blue-900 border border-blue-700/60"
+        run.esRecord ? "bg-success shadow-[0_0_8px_var(--success)]" : "bg-muted border border-border"
       }`} />
       <div
         className="hidden group-hover/dot:block"
@@ -120,30 +131,34 @@ function PlayerMobileCard({ player, index, isHighlighted, onHighlight }: {
   isHighlighted: boolean;
   onHighlight: (name: string | null) => void;
 }) {
-  const records = player.runs.filter((r) => r.esRecord).length;
+  const records = player.records;
   return (
     <div className={`rounded-xl px-3 py-2.5 border transition-colors ${
       isHighlighted
-        ? "bg-yellow-500/10 border-yellow-400/30"
-        : "bg-blue-500/5 border-blue-500/10"
+        ? "bg-gold/10 border-gold/30"
+        : "bg-muted/40 border-border"
     }`}>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-blue-400/30 w-4">{index + 1}</span>
-          <span className={`text-sm font-bold ${isHighlighted ? "text-yellow-300" : "text-blue-100"}`}>
-            {isHighlighted && <Trophy className="w-3 h-3 text-yellow-400 inline mr-1 mb-0.5" />}
+      <div className="flex items-center justify-between mb-2 gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-xs font-mono text-muted-foreground w-4 shrink-0">{index + 1}</span>
+          <span className={`text-sm font-bold truncate ${isHighlighted ? "text-gold" : "text-foreground"}`}>
+            {isHighlighted && <Trophy className="w-3 h-3 text-gold inline mr-1 mb-0.5" />}
             {player.nombre}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full ${
             records > 0
-              ? "bg-green-900/40 text-green-400 border border-green-500/30"
-              : "bg-blue-900/30 text-blue-400/40 border border-blue-500/20"
+              ? "bg-success/15 text-success border border-success/30"
+              : "bg-muted/60 text-muted-foreground border border-border"
           }`}>
             {records} WR
           </span>
-          <span className="text-xs font-mono text-blue-400/40">{player.runs.length} runs</span>
+          <span className="flex items-center gap-1 text-xs font-mono text-gold" title="Tiempo total corrido">
+            <Timer className="w-3 h-3" />
+            {formatDuracion(player.segundosTotal)}
+          </span>
+          <span className="text-xs font-mono text-muted-foreground">{player.runs.length} runs</span>
         </div>
       </div>
       <div className="flex flex-wrap gap-1.5 overflow-visible">
@@ -163,32 +178,37 @@ function PlayerRow({ player, index, isHighlighted, onHighlight }: {
   isHighlighted: boolean;
   onHighlight: (name: string | null) => void;
 }) {
-  const records = player.runs.filter((r) => r.esRecord).length;
+  const records = player.records;
   return (
     <tr
-      className={`border-b border-blue-500/10 last:border-0 transition-colors ${
-        isHighlighted ? "bg-yellow-500/10 border-l-2 border-l-yellow-400/60" : "hover:bg-blue-500/5"
+      className={`border-b border-border last:border-0 transition-colors ${
+        isHighlighted ? "bg-gold/10 border-l-2 border-l-gold/60" : "hover:bg-muted/40"
       }`}
       style={{ position: "relative", zIndex: 0 }}
       onMouseEnter={(e) => (e.currentTarget.style.zIndex = "50")}
       onMouseLeave={(e) => (e.currentTarget.style.zIndex = "0")}
     >
-      <td className="py-3 px-3 text-xs text-blue-400/40 font-mono">{index + 1}</td>
-      <td className={`py-3 px-3 font-semibold whitespace-nowrap ${isHighlighted ? "text-yellow-300" : "text-blue-100"}`}>
-        {isHighlighted && <Trophy className="w-3 h-3 text-yellow-400 inline mr-1.5 mb-0.5" />}
+      <td className="py-3 px-3 text-xs text-muted-foreground font-mono">{index + 1}</td>
+      <td className={`py-3 px-3 font-semibold whitespace-nowrap ${isHighlighted ? "text-gold" : "text-foreground"}`}>
+        {isHighlighted && <Trophy className="w-3 h-3 text-gold inline mr-1.5 mb-0.5" />}
         {player.nombre}
       </td>
       <td className="py-3 px-3 text-center">
         <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full ${
           records > 0
-            ? "bg-green-900/40 text-green-400 border border-green-500/30"
-            : "bg-blue-900/30 text-blue-400/40 border border-blue-500/20"
+            ? "bg-success/15 text-success border border-success/30"
+            : "bg-muted/60 text-muted-foreground border border-border"
         }`}>
           {records}
         </span>
       </td>
       <td className="py-3 px-3 text-center">
-        <span className="text-xs font-mono text-blue-400/50">{player.runs.length}</span>
+        <span className="text-xs font-mono text-muted-foreground">{player.runs.length}</span>
+      </td>
+      <td className="py-3 px-3 text-center whitespace-nowrap">
+        <span className="text-xs font-mono font-bold text-gold tabular-nums">
+          {formatDuracion(player.segundosTotal)}
+        </span>
       </td>
       <td className="py-3 px-3 overflow-visible">
         <div className="flex flex-wrap gap-1.5 overflow-visible">
@@ -207,7 +227,7 @@ function PlayersTable({ players }: { players: PlayerData[] }) {
   const [highlightedPlayer, setHighlightedPlayer] = useState<string | null>(null);
 
   return (
-    <div className="overflow-y-auto overflow-x-visible flex-1 pr-1">
+    <div className="overflow-y-auto overflow-x-visible flex-1 pr-1 custom-scrollbar">
       {/* Mobile */}
       <div className="flex flex-col gap-2 sm:hidden">
         {players.map((player, i) => (
@@ -223,12 +243,13 @@ function PlayersTable({ players }: { players: PlayerData[] }) {
 
       {/* Desktop */}
       <table className="hidden sm:table w-full text-sm overflow-visible">
-        <thead className="sticky top-0" style={{ background: "#060f1a" }}>
-          <tr className="text-left text-blue-400/50 text-xs border-b border-blue-500/20">
+        <thead className="sticky top-0 bg-card z-10">
+          <tr className="text-left text-muted-foreground text-xs border-b border-border">
             <th className="pb-2 pt-1 px-3 font-medium w-8">#</th>
             <th className="pb-2 pt-1 px-3 font-medium">Player</th>
             <th className="pb-2 pt-1 px-3 font-medium text-center w-24">Records</th>
             <th className="pb-2 pt-1 px-3 font-medium text-center w-16">Runs</th>
+            <th className="pb-2 pt-1 px-3 font-medium text-center w-24">Tiempo</th>
             <th className="pb-2 pt-1 px-3 font-medium">Games</th>
           </tr>
         </thead>
@@ -252,20 +273,20 @@ function PlayersTable({ players }: { players: PlayerData[] }) {
 
 function PlayersHeader({ count }: { count: number }) {
   return (
-    <DialogHeader className="border-b border-blue-500/20 pb-3">
-      <DialogTitle className="flex items-center gap-2 text-blue-100 flex-wrap">
-        <Users className="w-4 h-4 text-blue-400" />
+    <DialogHeader className="border-b border-border pb-3">
+      <DialogTitle className="flex items-center gap-2 text-foreground flex-wrap">
+        <Users className="w-4 h-4 text-brand" />
         Players
-        <span className="text-xs font-normal text-blue-400/50 font-mono ml-1">
+        <span className="text-xs font-normal text-muted-foreground font-mono ml-1">
           {count} runners
         </span>
-        <div className="flex items-center gap-3 text-xs text-blue-400/50 font-mono ml-1 flex-wrap">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground font-mono ml-1 flex-wrap">
           <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-green-500 inline-block shadow-[0_0_6px_rgba(34,197,94,0.6)]" />
+            <span className="w-3 h-3 rounded-full bg-success inline-block shadow-[0_0_6px_var(--success)]" />
             Tiene el record
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-blue-900 border border-blue-700/60 inline-block" />
+            <span className="w-3 h-3 rounded-full bg-muted border border-border inline-block" />
             Tiene una run
           </span>
         </div>
@@ -278,7 +299,7 @@ function PlayersHeader({ count }: { count: number }) {
 
 function PlayersFooter({ juegos }: { juegos: Juego[] }) {
   return (
-    <div className="border-t border-blue-500/20 pt-3 mt-1 flex items-center gap-4 text-xs text-blue-400/40 font-mono flex-wrap">
+    <div className="border-t border-border pt-3 mt-1 flex items-center gap-4 text-xs text-muted-foreground font-mono flex-wrap">
       <span>{juegos.length} juegos totales</span>
       <span>·</span>
       <span>{juegos.filter((j) => j.runners.length > 0).length} con runs</span>
@@ -289,13 +310,10 @@ function PlayersFooter({ juegos }: { juegos: Juego[] }) {
 // ─── PlayersDialog ────────────────────────────────────────────────────────────
 
 export function PlayersDialog({ juegos, open, onClose }: PlayersDialogProps) {
-  const players = buildPlayers(juegos);
+  const players = useMemo(() => buildPlayers(juegos), [juegos]);
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent
-        className="!max-w-[95vw] w-[95vw] border border-blue-500/20 text-white max-h-[85vh] overflow-y-hidden flex flex-col"
-        style={{ background: "#060f1a" }}
-      >
+      <DialogContent className="panel-shell !max-w-[95vw] w-[95vw] border border-border text-foreground max-h-[85vh] overflow-y-hidden flex flex-col">
         <PlayersHeader count={players.length} />
         <PlayersTable players={players} />
         <PlayersFooter juegos={juegos} />
