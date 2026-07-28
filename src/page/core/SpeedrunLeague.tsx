@@ -11,6 +11,7 @@ import { SearchBar, type SortMode } from "../feature/SearchBar";
 import { TabsContenido } from "../feature/TabsContenido";
 import { StatsStrip } from "../feature/StatsStrip";
 import { Destacados } from "../feature/Destacados";
+import { StreamsDialog, TwitchIcon } from "../feature/StreamsDialog";
 import type { Juego } from "../landing/types/types";
 import { calcularStats, slugify } from "../utils/stats";
 import { useLeagueData } from "../data/LeagueDataContext";
@@ -18,14 +19,6 @@ import { useTheme } from "@/hooks/useTheme";
 
 // "Roba Fácil": juegos con un solo runner cuyo récord pertenece a estos jugadores
 const ROBA_FACIL = new Set(["sanosuke", "jack turrismo", "jack turismo"]);
-
-function TwitchIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z" />
-    </svg>
-  );
-}
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -55,6 +48,7 @@ export default function SpeedrunLeague() {
   const [ptsFilter, setPtsFilter] = useState<number | null>(null);
   const [sort, setSort] = useState<SortMode>("relevantes");
   const [robaFacil, setRobaFacil] = useState(false);
+  const [showStreams, setShowStreams] = useState(false);
 
   const irAJuego = (juego: Juego) => navigate(`/juego/${slugify(juego.nombre)}`);
 
@@ -159,15 +153,13 @@ export default function SpeedrunLeague() {
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 z-10">
             <ThemeToggle />
 
-            <a
-              href="https://www.twitch.tv/martin_bombelli"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => setShowStreams(true)}
               className="group flex items-center justify-center p-2.5 sm:px-3 sm:py-2.5 rounded-xl border border-[#a855f7]/30 bg-[#a855f7]/10 hover:bg-[#a855f7]/20 hover:border-[#a855f7]/60 transition-all duration-300"
-              title="Ir a Twitch"
+              title="Ver transmisiones"
             >
               <TwitchIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[#a855f7] group-hover:text-[#c084fc]" />
-            </a>
+            </button>
 
             <button
               onClick={() => setShowPlayers(true)}
@@ -267,6 +259,7 @@ export default function SpeedrunLeague() {
         open={showPlayers}
         onClose={() => setShowPlayers(false)}
       />
+      <StreamsDialog open={showStreams} onClose={() => setShowStreams(false)} />
     </motion.div>
   );
 }
